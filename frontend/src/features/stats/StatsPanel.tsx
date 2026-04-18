@@ -1,4 +1,7 @@
+import { useState } from "react";
+import { useChat } from "src/lib/api/bedrock_hook";
 import { useHouseholdStore } from '../../lib/store/household';
+
 
 function formatNumber(n: number, digits = 0): string {
   return n.toLocaleString(undefined, {
@@ -95,6 +98,30 @@ export function StatsPanel() {
           </div>
         </div>
       </div>
+      
     </div>
   );
 }
+export default function Chat() {
+  const { messages, send, loading, error } = useChat();
+  const [input, setInput] = useState("");
+
+  function handleSend() {
+    if (!input.trim()) return;
+    send(input);
+    setInput("");
+  }
+
+  return (
+    <div>
+      {messages.map((m, i) => (
+        <div key={i}>{m.role}: {m.content}</div>
+      ))}
+      {loading && <div>Thinking...</div>}
+      {error && <div style={{ color: "red" }}>{error}</div>}
+      <input value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => e.key === "Enter" && handleSend()} />
+      <button onClick={handleSend} disabled={loading}>Send</button>
+    </div>
+  );
+}
+
