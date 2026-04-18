@@ -9,7 +9,7 @@ load_dotenv()
 
 from SolarAPI.solar import solar_bp  # noqa: E402
 from flask_cors import CORS
-from Bedrock import bedrock_route
+from Bedrock.bedrock_route import chat_bp
 
 def create_app() -> Flask:
     app = Flask(__name__)
@@ -17,7 +17,7 @@ def create_app() -> Flask:
     # Mount the Google Solar proxy under /api/solar so the Vite dev proxy
     # (/api/* -> http://localhost:5000) routes it cleanly.
     app.register_blueprint(solar_bp, url_prefix="/api/solar")
-    app.register_blueprint(bedrock_route)
+    app.register_blueprint(chat_bp)
     return app
 
 
