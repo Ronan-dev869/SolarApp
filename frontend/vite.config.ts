@@ -6,5 +6,13 @@ export default defineConfig({
   server: {
     port: 5173,
     host: true,
+    proxy: {
+      // Forward /api/* to the Flask backend so the browser never hits CORS
+      // and VITE_API_BASE_URL can stay unset in local dev.
+      '/api': {
+        target: 'http://localhost:5000',
+        changeOrigin: true,
+      },
+    },
   },
 });

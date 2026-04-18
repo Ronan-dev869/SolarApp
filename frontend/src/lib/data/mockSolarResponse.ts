@@ -41,8 +41,8 @@ export const MOCK_GOOGLE_SOLAR_RESPONSE = {
  * TEMPORARY: replaced by an Amazon Location Service call once backend ships.
  */
 export const MOCK_GEOCODE = {
-  lat: 34.1478,
-  lon: -118.1445,
+  lat: 34.1476,
+  lon: -118.1438,
   county: 'Los Angeles',
-  formattedAddress: '1234 Sunny Lane, Pasadena, CA 91101, USA',
+  formattedAddress: '100 N Garfield Ave, Pasadena, CA 91101',
 };

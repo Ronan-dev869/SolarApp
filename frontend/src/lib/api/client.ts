@@ -8,10 +8,9 @@ import type {
 /**
  * The swap boundary.
  *
- * Today this is satisfied by `mockClient.ts`.
- * Tomorrow it will be satisfied by `httpClient.ts` (API Gateway + Lambda).
- * Nothing in the UI layer should import anything other than this interface
- * and the factory below.
+ * Chooses between `mockClient` (hardcoded Pasadena response) and `httpClient`
+ * (Flask backend → Google Solar API) based on `VITE_API_MODE`. Set
+ * `VITE_API_MODE=mock` to force the mock, anything else hits the real backend.
  */
 export interface ApiClient {
   geocode(address: string): Promise<GeocodeResult>;
@@ -28,7 +27,9 @@ export interface ApiClient {
 }
 
 import { mockClient } from './mockClient';
+import { httpClient } from './httpClient';
 
-// Single place to flip from mock → real. When the Lambda layer is deployed,
-// replace this with `httpClient` (or branch on `import.meta.env.VITE_API_MODE`).
-export const apiClient: ApiClient = mockClient;
+const apiMode =
+  (import.meta.env.VITE_API_MODE as string | undefined) ?? 'http';
+
+export const apiClient: ApiClient = apiMode === 'mock' ? mockClient : httpClient;
