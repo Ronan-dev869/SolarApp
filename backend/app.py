@@ -17,7 +17,7 @@ def create_app() -> Flask:
     # Mount the Google Solar proxy under /api/solar so the Vite dev proxy
     # (/api/* -> http://localhost:5000) routes it cleanly.
     app.register_blueprint(solar_bp, url_prefix="/api/solar")
-    app.register_blueprint(chat_bp)
+    app.register_blueprint(chat_bp, url_prefix="/api")
     return app
 
 

@@ -1,11 +1,43 @@
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"
-export async function sendMessage(messages: any[], system?: string) {
-  const res = await fetch(`${BASE_URL}/chat`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ messages, system })
-  });
+export interface BedrockMessage {
+  role: 'user' | 'assistant';
+  content: string;
+}
 
-  if (!res.ok) throw new Error("Failed to reach backend");
-  return res.json();
+export interface BedrockChatResponse {
+  reply: string;
+}
+
+const API_BASE_URL =
+  (import.meta.env.VITE_API_BASE_URL as string | undefined) ?? '/api';
+
+export async function sendMessage(
+  messages: BedrockMessage[],
+  system?: string,
+  signal?: AbortSignal,
+): Promise<BedrockChatResponse> {
+  const url = `${API_BASE_URL}/chat`;
+
+  let response: Response;
+  try {
+    response = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ messages, system }),
+      signal,
+    });
+  } catch (cause) {
+    throw new Error(
+      `Network error calling Bedrock chat at ${url}. Is the Flask backend running?`,
+      { cause },
+    );
+  }
+
+  if (!response.ok) {
+    const body = await response.text().catch(() => '');
+    throw new Error(
+      `Bedrock chat returned ${response.status}: ${body.slice(0, 200)}`,
+    );
+  }
+
+  return (await response.json()) as BedrockChatResponse;
 }

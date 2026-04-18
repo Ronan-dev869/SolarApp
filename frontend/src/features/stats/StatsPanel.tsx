@@ -1,5 +1,6 @@
 
 import { useHouseholdStore } from '../../lib/store/household';
+import { useNeighborComparison } from '../../lib/api/bedrock_hook';
 
 
 function formatNumber(n: number, digits = 0): string {
@@ -19,6 +20,7 @@ function formatPct(n: number): string {
 export function StatsPanel() {
   const resolved = useHouseholdStore((s) => s.resolved);
   const error = useHouseholdStore((s) => s.error);
+  const comparison = useNeighborComparison();
 
   if (error) {
     return (
@@ -97,7 +99,23 @@ export function StatsPanel() {
           </div>
         </div>
       </div>
-      
+
+      <div className="comparison-block">
+        <button
+          type="button"
+          className="btn-compare"
+          onClick={() => void comparison.run()}
+          disabled={comparison.loading}
+        >
+          {comparison.loading ? 'Analyzing…' : 'Compare to neighbors'}
+        </button>
+        {comparison.error && (
+          <div className="comparison-error">{comparison.error}</div>
+        )}
+        {comparison.result && (
+          <p className="comparison-result">{comparison.result}</p>
+        )}
+      </div>
     </div>
   );
 }
