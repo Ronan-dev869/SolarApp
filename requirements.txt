@@ -1,0 +1,13 @@
+# Amazon Bedrock & Kendra (AWS SDK)
+boto3>=1.34.0
+botocore>=1.34.0
+ 
+# Flask Web Framework
+Flask>=3.0.0
+Werkzeug>=3.0.0
+ 
+# Environment & Config
+python-dotenv>=1.0.0
+ 
+# Optional but commonly used with Bedrock/Kendra
+requests>=2.31.0
