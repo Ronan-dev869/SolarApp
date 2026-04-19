@@ -1,5 +1,5 @@
 
-<img width="810" height="642" alt="image" src="https://github.com/user-attachments/assets/0d744f38-8f90-4b27-a42a-a5622c03b2cb" />
+<img width="810" height="642" alt="AWS CloudHacks Logo" src="https://github.com/user-attachments/assets/af0463d7-1d44-42bd-a23e-2bdbda290a33" />
 
 ## Inspiration
 California is leading the charge against fossil fuels, with a growing push to get households onto solar energy. But despite the initiative, there's no easy way for the average homeowner to understand their real energy impact, how much solar they're actually generating, how much carbon they're still emitting, and how they compare to the people living right next to them. 
