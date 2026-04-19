@@ -1,6 +1,7 @@
-
+import { useState } from 'react';
 import { useHouseholdStore } from '../../lib/store/household';
 import { useNeighborComparison } from '../../lib/api/bedrock_hook';
+import { ReceiptModal } from '../receipt/ReceiptModal';
 
 
 function formatNumber(n: number, digits = 0): string {
@@ -21,6 +22,7 @@ export function StatsPanel() {
   const resolved = useHouseholdStore((s) => s.resolved);
   const error = useHouseholdStore((s) => s.error);
   const comparison = useNeighborComparison();
+  const [showReceipt, setShowReceipt] = useState(false);
 
   if (error) {
     return (
@@ -109,6 +111,13 @@ export function StatsPanel() {
         >
           {comparison.loading ? 'Analyzing…' : 'Compare to neighbors'}
         </button>
+        <button
+          type="button"
+          className="btn-receipt"
+          onClick={() => setShowReceipt(true)}
+        >
+          Print receipt
+        </button>
         {comparison.error && (
           <div className="comparison-error">{comparison.error}</div>
         )}
@@ -116,6 +125,13 @@ export function StatsPanel() {
           <p className="comparison-result">{comparison.result}</p>
         )}
       </div>
+
+      {showReceipt && (
+        <ReceiptModal
+          resolved={resolved}
+          onClose={() => setShowReceipt(false)}
+        />
+      )}
     </div>
   );
 }

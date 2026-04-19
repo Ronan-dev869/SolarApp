@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx tsc *)",
+      "Bash(/c/Users/shruj/OneDrive/Desktop/SolarApp/frontend/node_modules/.bin/tsc --noEmit -p /c/Users/shruj/OneDrive/Desktop/SolarApp/frontend)",
+      "Bash(echo \"exit=$?\")"
+    ]
+  }
+}

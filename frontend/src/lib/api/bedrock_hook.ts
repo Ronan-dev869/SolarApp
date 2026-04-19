@@ -66,6 +66,7 @@ export interface UseNeighborComparisonResult {
 
 export function useNeighborComparison(): UseNeighborComparisonResult {
   const resolved = useHouseholdStore((s) => s.resolved);
+  const setNeighbors = useHouseholdStore((s) => s.setNeighbors);
   const [result, setResult] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -84,7 +85,11 @@ export function useNeighborComparison(): UseNeighborComparisonResult {
       const neighbors = computeNeighborAverages(
         resolved.geocode.lat,
         resolved.geocode.lon,
+        resolved.solar.carbonOffsetFactorKgPerMwh,
       );
+      // Push into the store so the map can render neighbor bars in parallel
+      // with the LLM call — user sees the visual comparison immediately.
+      setNeighbors(neighbors);
       const userPrompt = buildComparisonPrompt(resolved, neighbors);
       const messages: BedrockMessage[] = [
         { role: 'user', content: userPrompt },
@@ -96,7 +101,7 @@ export function useNeighborComparison(): UseNeighborComparisonResult {
     } finally {
       setLoading(false);
     }
-  }, [resolved]);
+  }, [resolved, setNeighbors]);
 
   const reset = useCallback(() => {
     setResult(null);

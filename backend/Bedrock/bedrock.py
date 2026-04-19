@@ -1,11 +1,15 @@
+import os
 import boto3
 import json
 
-client = boto3.client("bedrock-runtime", region_name="us-east-1")
+client = boto3.client(
+    "bedrock-runtime",
+    region_name=os.environ.get("AWS_DEFAULT_REGION", "us-west-2"),
+)
 
 def prompt(messages, system="You are a helpful assistant."):
     response = client.invoke_model(
-        modelId="us.anthropic.claude-3-5-sonnet-20241022-v2:0",
+        modelId="us.anthropic.claude-sonnet-4-5-20250929-v1:0",
         body=json.dumps({
             "anthropic_version": "bedrock-2023-05-31",
             "max_tokens": 1024,

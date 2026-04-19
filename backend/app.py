@@ -10,6 +10,8 @@ load_dotenv()
 from SolarAPI.solar import solar_bp  # noqa: E402
 from flask_cors import CORS
 from Bedrock.bedrock_route import chat_bp
+from aws_location_service.geocode import geocode_bp  # noqa: E402
+
 
 def create_app() -> Flask:
     app = Flask(__name__)
@@ -18,6 +20,7 @@ def create_app() -> Flask:
     # (/api/* -> http://localhost:5000) routes it cleanly.
     app.register_blueprint(solar_bp, url_prefix="/api/solar")
     app.register_blueprint(chat_bp, url_prefix="/api")
+    app.register_blueprint(geocode_bp, url_prefix="/api")
     return app
 
 

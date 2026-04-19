@@ -10,15 +10,16 @@ const INITIAL_ZOOM = 7;
 const HOUSE_ZOOM = 18;
 const HOUSE_PITCH = 55;
 
-// OpenFreeMap — free, no API key, vector tiles. Swap to Amazon Location Service
-// style URL when AWS wiring lands; the rest of this file is unchanged.
-const MAP_STYLE_URL = 'https://tiles.openfreemap.org/styles/liberty';
+// Carto dark-matter — free, no API key, dark vector basemap.
+const MAP_STYLE_URL =
+  'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json';
 
 export function MapView() {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MapLibreMap | null>(null);
   const overlayRef = useRef<MapboxOverlay | null>(null);
   const resolved = useHouseholdStore((s) => s.resolved);
+  const neighbors = useHouseholdStore((s) => s.neighbors);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -41,6 +42,47 @@ export function MapView() {
       });
       map.addControl(overlay as unknown as maplibregl.IControl);
       overlayRef.current = overlay;
+
+      // Find the basemap's vector source so we can extrude its building layer.
+      const style = map.getStyle();
+      const vectorSourceName = Object.entries(style.sources ?? {}).find(
+        ([, src]) => (src as { type?: string }).type === 'vector',
+      )?.[0];
+
+      if (vectorSourceName && !map.getLayer('building-3d')) {
+        map.addLayer({
+          id: 'building-3d',
+          type: 'fill-extrusion',
+          source: vectorSourceName,
+          'source-layer': 'building',
+          minzoom: 14,
+          paint: {
+            'fill-extrusion-color': '#2e2418',
+            'fill-extrusion-height': [
+              'coalesce',
+              ['get', 'render_height'],
+              ['get', 'height'],
+              3,
+            ],
+            'fill-extrusion-base': [
+              'coalesce',
+              ['get', 'render_min_height'],
+              ['get', 'min_height'],
+              0,
+            ],
+            'fill-extrusion-opacity': 0.85,
+          },
+        });
+      }
+    });
+
+    map.on('click', (e) => {
+      const { lat, lng } = e.lngLat;
+      void useHouseholdStore.getState().refreshAtLocation(lat, lng);
+    });
+
+    map.on('mousemove', () => {
+      map.getCanvas().style.cursor = 'pointer';
     });
 
     return () => {
@@ -52,11 +94,8 @@ export function MapView() {
 
   useEffect(() => {
     const map = mapRef.current;
-    const overlay = overlayRef.current;
-    if (!map || !overlay || !resolved) return;
-
-    const { geocode, stats } = resolved;
-
+    if (!map || !resolved) return;
+    const { geocode } = resolved;
     map.flyTo({
       center: [geocode.lon, geocode.lat],
       zoom: HOUSE_ZOOM,
@@ -65,33 +104,39 @@ export function MapView() {
       duration: 2200,
       essential: true,
     });
-
-    overlay.setProps({
-      layers: buildSolarBarsLayers(stats, {
-        lat: geocode.lat,
-        lon: geocode.lon,
-      }),
-    });
   }, [resolved]);
+
+  useEffect(() => {
+    const overlay = overlayRef.current;
+    if (!overlay || !resolved) return;
+    const { geocode, stats } = resolved;
+    overlay.setProps({
+      layers: buildSolarBarsLayers(
+        stats,
+        { lat: geocode.lat, lon: geocode.lon },
+        neighbors,
+      ),
+    });
+  }, [resolved, neighbors]);
 
   return (
     <div style={{ position: 'absolute', inset: 0 }}>
       <div ref={containerRef} style={{ position: 'absolute', inset: 0 }} />
       <div className="map-overlay-legend">
-        <div style={{ fontWeight: 600, marginBottom: 4 }}>3D bars</div>
+        <div className="legend-title">At sunrise</div>
         <div className="legend-row">
           <div
-            className="legend-swatch"
-            style={{ background: 'rgb(34,197,94)' }}
+            className="legend-swatch legend-swatch-solar"
+            style={{ background: 'rgb(255,198,88)' }}
           />
-          <span>CO₂ avoided by solar</span>
+          <span>Clean energy you generate</span>
         </div>
         <div className="legend-row">
           <div
-            className="legend-swatch"
-            style={{ background: 'rgb(239,68,68)' }}
+            className="legend-swatch legend-swatch-co2"
+            style={{ background: 'rgb(233,113,86)' }}
           />
-          <span>CO₂ emitted by household</span>
+          <span>CO₂ your home emits</span>
         </div>
       </div>
     </div>

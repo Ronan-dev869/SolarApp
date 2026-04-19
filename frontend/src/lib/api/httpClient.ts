@@ -5,7 +5,6 @@ import type {
   HouseholdStatsResult,
   SolarPotentialResult,
 } from './types';
-import { MOCK_GEOCODE } from '../data/mockSolarResponse';
 import { computeHouseholdStats } from '../calc/householdStats';
 import {
   parseGoogleSolarResponse,
@@ -41,12 +40,45 @@ async function fetchBuildingInsights(
   return (await response.json()) as GoogleSolarBuildingInsightsResponse;
 }
 
+interface GeocodeApiResponse {
+  lat: number;
+  lon: number;
+  county: string;
+  formattedAddress: string;
+}
+
+async function fetchGeocode(address: string): Promise<GeocodeApiResponse> {
+  const url = `${API_BASE_URL}/geocode?address=${encodeURIComponent(address)}`;
+
+  let response: Response;
+  try {
+    response = await fetch(url);
+  } catch (cause) {
+    throw new Error(
+      `Network error calling geocode API at ${url}. Is the Flask backend running?`,
+      { cause },
+    );
+  }
+
+  if (!response.ok) {
+    const body = await response.text().catch(() => '');
+    throw new Error(
+      `Geocode API returned ${response.status}: ${body.slice(0, 200)}`,
+    );
+  }
+
+  return (await response.json()) as GeocodeApiResponse;
+}
+
 export const httpClient: ApiClient = {
-  async geocode(_address: string): Promise<GeocodeResult> {
-    // Backend currently has no geocoding endpoint, so every submission
-    // resolves to the same Pasadena household. Swap to Amazon Location
-    // Service when the backend exposes a /geocode route.
-    return { ...MOCK_GEOCODE };
+  async geocode(address: string): Promise<GeocodeResult> {
+    const result = await fetchGeocode(address);
+    return {
+      lat: result.lat,
+      lon: result.lon,
+      county: result.county,
+      formattedAddress: result.formattedAddress,
+    };
   },
 
   async getSolarPotential({
